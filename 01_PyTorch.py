@@ -58,99 +58,63 @@ def plot_predictions(train_data = X_train,
 class LinearRegressionModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.weights = nn.Parameter(torch.randn(1,
-                                                requires_grad=True,
-                                                dtype=torch.float))
-        self.bias = nn.Parameter(torch.randn(1,
-                                             requires_grad=True,
-                                             dtype=torch.float))
-        #Forward method to define the computation in the model
-    def forward(self, x: torch.tensor) -> torch.Tensor:
-        return self.weights *x + self.bias
-
-### Checking the contents of our pytorch model
-
-#Create a random seed
-
+        self.linear_layer = nn.Linear(in_features=1,
+                                      out_features=1)
+    def forward(self, x: torch.tensor) -> torch.tensor:
+        return self.linear_layer(x)
+    
 torch.manual_seed(42)
+model_0=LinearRegressionModel()
 
-#Create an instance of the model
-model_0 = LinearRegressionModel()
-
-#Check parameters
-#print(model_0.state_dict())
-
-###Making predictions
-
-with torch.inference_mode():
-    y_preds = model_0(X_test)
-#print(y_preds)
- 
-###Train Model
-
-#Setup a loss function
 loss_fn = nn.L1Loss()
 
-#Setup Optimizer
-
-optimizer = torch.optim.SGD(params = model_0.parameters(),
+optimizer = torch.optim.SGD(params=model_0.parameters(),
                             lr = 0.01)
 
-#Building a training loop (and a testing loop)
+torch.manual_seed(42)
+epochs = 200
 
-epochs = 100
-
-#0. Loop through Data
-
-for epoch in range(epochs):
-    # Set model to training mode
+for epoch in range (epochs):
     model_0.train()
 
-    #1. Forward pass
+    #1: Forward Pass
     y_pred = model_0(X_train)
 
-    #2. Calculate Loss
+    #2: Calculate the loss
     loss = loss_fn(y_pred, y_train)
 
-    #3. Optimiser zero grad 
+    #3: Optimizer zero grad
     optimizer.zero_grad()
 
-    #4. Perform back propogation
+    #4: Perform back propogaton
     loss.backward()
 
-    #5. Perform Grad Descent
+    #5: Optimizer step
     optimizer.step()
 
-    ###Testing
+    ###Testing 
     model_0.eval()
     with torch.inference_mode():
-        #1. Forward Pass
         test_pred = model_0(X_test)
 
-        #2. Calc Loss
         test_loss = loss_fn(test_pred, y_test)
 
     if epoch % 10 == 0:
         print(f"Epoch: {epoch} | Loss: {loss} | Test Loss: {test_loss}")
 
-print(model_0.state_dict())
-with torch.inference_mode():
-    y_preds_new = model_0(X_test)
-plot_predictions( predictions=y_preds_new)
+#Save and Load a model
 
+from pathlib import Path
 
+MODEL_PATH = Path('C:\\Users\\matty\\OneDrive\\Desktop\\DeepLearning\\models')
+MODEL_PATH.mkdir(parents = True, exist_ok = True)
 
+MODEL_NAME = 'LinearRegressionModel0.pth'
+MODEL_SAVE_PATH = MODEL_PATH / MODEL_NAME
+torch.save(model_0.state_dict(), f = MODEL_SAVE_PATH)
 
-
-
- 
-
-
-
-
-        
-
-    
+loaded_model_0 = LinearRegressionModel()
+loaded_model_0.load_state_dict(torch.load(f = MODEL_SAVE_PATH))
 
 
 
